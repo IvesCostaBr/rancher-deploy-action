@@ -1,6 +1,7 @@
 import os
 import sys
 import requests
+import json
 
 class Log:
     def __init__(self, request):
@@ -13,7 +14,7 @@ class Log:
             """)
         else:
             print(f"""
-                \033[1;31m RESPONSE FAIL--> {self.request} \033[0;0m
+                \033[1;31m RESPONSE FAIL--> {self.request.json()} \033[0;0m
             """)
         
 
@@ -50,6 +51,10 @@ class DeployRancher:
 
         rget = requests.get(self.rancher_deployment_path,
                             auth=(self.access_key, self.secret_key))
+        
+        with open("log.json", "w") as outfile:
+            outfile.write(json.dumps(rget.json(), indent=4))
+            
         response = rget.json()
         if 'status' in response and response['status'] == 404:
             config = {
@@ -75,8 +80,7 @@ class DeployRancher:
     def update_workload(self):
         pass
         
-
-
+        
 def deploy_in_rancher(rancher_access_key, rancher_secret_key, rancher_url_api,
                       rancher_service_name, rancher_docker_image):
     deployment = DeployRancher(rancher_access_key, rancher_secret_key, rancher_url_api,
@@ -94,31 +98,6 @@ if __name__ == '__main__':
     rancher_docker_image = os.environ['DOCKER_IMAGE']
     rancher_docker_image_latest = os.environ['DOCKER_IMAGE_LATEST']
     
-    # rancher_access_key = "token-twcj6"
-    # rancher_secret_key = "t5cdh4frvnplqlsndspwcs72pnp9qhfjw2c55mqkjbp9hvn27sq6js"
-    # rancher_url_api = "https://rancher.d3.do/v3"
-    # rancher_service_name = "d3-site-cms"
-    # rancher_docker_image = "929907635541.dkr.ecr.us-east-1.amazonaws.com/d3-site-cms:3f796bb665bafb66ca0532b39459b96ceaae796a"
-    # rancher_docker_image_latest = ""
-    # rancher_namespace_project = "d3-site-dev"
-    
-    # log = Log(DeployRancher(rancher_access_key, rancher_secret_key, rancher_url_api,
-    #          rancher_service_name, rancher_docker_image).rancher_auth())
-    
-    # config = {
-    # "containers": [{
-    #     "imagePullPolicy": "IfNotPresent",
-    #     "image": rancher_docker_image,
-    #     "name": rancher_service_name,
-    # }],
-    # "namespaceId": "d3-site-dev",
-    # "name": rancher_service_name
-    # }
-    
-    # response = requests.post('{}/project/c-hmjq4:p-4xx87/workloads'.format(rancher_url_api), json=config, auth=(rancher_access_key, rancher_secret_key))
-    # print(response.json())
-    
-    # reponse = request.get('{}/')
      
     try:
         deploy_in_rancher(rancher_access_key, rancher_secret_key, rancher_url_api,
@@ -129,7 +108,8 @@ if __name__ == '__main__':
             deploy_in_rancher(rancher_access_key, rancher_secret_key, rancher_url_api, 
                                 rancher_service_name, rancher_docker_image_latest)
                     
-    except KeyError:
+    except KeyError as key:
+        raise  print(key)
         sys.exit(1)
 
         
